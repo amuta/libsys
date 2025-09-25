@@ -12,7 +12,7 @@ class Api::V1::SessionsController < Api::V1::BaseController
   end
 
   def show
-    return head :unauthorized unless Current.user
+    authenticate!
     @user = Current.user
     render :show
   end
