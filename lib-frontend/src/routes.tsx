@@ -4,6 +4,7 @@ import BookForm from "./screens/BookForm";
 import Loans from "./screens/Loans";
 import Guard from "./screens/Guard";
 import Dashboard from "./screens/Dashboard";
+import Register from "./screens/Register";
 import { Navigate } from "react-router-dom";
 export default [
   { path:"/login", element:<Login/> },
@@ -14,6 +15,7 @@ export default [
     { path:"/books/new", element:<BookForm mode="create"/> },
     { path:"/books/:id/edit", element:<BookForm mode="edit"/> },
     { path:"/loans", element:<Loans/> },
+    { path:"/register", element:<Register/> },
     { path:"*", element:<Navigate to="/dashboard" replace /> },
   ]},
 ];
