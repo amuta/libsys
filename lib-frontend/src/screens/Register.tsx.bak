@@ -8,29 +8,17 @@ export default function Register(){
   const [email, setE] = useState("");
   const [pw, setP] = useState("");
   const [pw2, setP2] = useState("");
-  const [ok, setOk] = useState(false);
   const nav = useNavigate();
 
   const valid = name.trim().length>0 && email.trim().length>0 && pw.length>=6 && pw===pw2;
 
   const m = useMutation({
     mutationFn: () => register({ name, email_address: email, password: pw, password_confirmation: pw2 }),
-    onSuccess: () => {
-      setOk(true);
-      setTimeout(()=> nav("/login?registered=1"), 900);
-    },
-    onError: ()=> setOk(false),
+    onSuccess: () => nav("/login"),
   });
-
-  const msgs = (m as any).error?.response?.data?.messages as string[] | undefined;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-base-100">
-      {ok && (
-        <div className="toast toast-top toast-end z-50">
-          <div className="alert alert-success"><span>Account created. Redirecting to sign in…</span></div>
-        </div>
-      )}
       <div className="card w-full max-w-sm bg-base-200 shadow">
         <div className="card-body gap-3">
           <h1 className="card-title">Create account</h1>
@@ -69,17 +57,17 @@ export default function Register(){
             required
           />
 
-          {(!valid) && (
+          {(!name.trim() || !email.trim() || (pw && pw.length<6) || (pw2 && pw2!==pw)) && (
             <div className="text-xs opacity-70">
-              Name and email required. Password ≥ 6 and must match.
+              Name and email are required. Password must be at least 6 characters and match confirmation.
             </div>
           )}
 
-          {msgs?.length ? (
+          {m.error && (
             <div className="alert alert-error text-sm">
-              <ul className="list-disc ml-5">{msgs.map((t,i)=><li key={i}>{t}</li>)}</ul>
+              <span>{(m as any).error?.response?.data?.messages?.join?.(", ") || "Registration failed"}</span>
             </div>
-          ) : null}
+          )}
 
           <button
             className={`btn btn-primary w-full ${m.isPending?"loading":""}`}
@@ -89,9 +77,9 @@ export default function Register(){
             Register
           </button>
 
-          <Link to="/login" className="btn btn-ghost w-full" aria-disabled={m.isPending}>
-            Back to sign in
-          </Link>
+          <div className="text-sm opacity-75">
+            Already have an account? <Link to="/login" className="link">Sign in</Link>
+          </div>
         </div>
       </div>
     </div>

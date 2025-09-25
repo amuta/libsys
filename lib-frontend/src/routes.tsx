@@ -8,6 +8,7 @@ import Register from "./screens/Register";
 import { Navigate } from "react-router-dom";
 export default [
   { path:"/login", element:<Login/> },
+  { path:"/register", element:<Register/> },
   { path:"/", element:<Guard/>, children:[
     { index:true, element:<Navigate to="/dashboard" replace /> },
     { path:"/dashboard", element:<Dashboard/> },
@@ -15,7 +16,6 @@ export default [
     { path:"/books/new", element:<BookForm mode="create"/> },
     { path:"/books/:id/edit", element:<BookForm mode="edit"/> },
     { path:"/loans", element:<Loans/> },
-    { path:"/register", element:<Register/> },
     { path:"*", element:<Navigate to="/dashboard" replace /> },
   ]},
 ];

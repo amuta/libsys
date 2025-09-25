@@ -1,6 +1,6 @@
 require "rails_helper"
 RSpec.describe "Session", type: :request do
-  let!(:user){ create(:user) }
+  let!(:user) { create(:user) }
 
   it "logs in with valid creds" do
     post "/api/v1/session", params: { email_address: user.email_address, password: "password" }
