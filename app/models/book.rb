@@ -2,7 +2,8 @@ class Book < ApplicationRecord
   include Loanable
   include Catalogable
 
-  belongs_to :genre, optional: true
+  has_many :book_genres, dependent: :destroy
+  has_many :genres, through: :book_genres
 
   validates :title, presence: true
   validates :isbn, format: { with: /\A[0-9X-]+\z/i }, allow_blank: true

@@ -1,17 +1,5 @@
-class BookPolicy < ApplicationPolicy
-  def index?
-    user.present?
-  end
-
-  def show?
-    user.present?
-  end
-
+class CopyPolicy < ApplicationPolicy
   def create?
-    user&.librarian?
-  end
-
-  def update?
     user&.librarian?
   end
 
