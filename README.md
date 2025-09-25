@@ -7,20 +7,27 @@ Rails API + React frontend. Auth with cookies. Roles: Librarian and Member. Book
 - Node 20+ and npm 10+
 - PostgreSQL 14+
 
-
 ## Quickstart
 
+Start the Postgres database
+```bash
+# Make sure you have postgres running and set the your own database env vars
+# or just use the docker compose to create a new local postgres container 
+export PGUSER=libsys PGPASSWORD=password PGHOST=localhost PGPORT=5432
+# Start Postgres (same env vars)
+docker compose up -d
+```
 
-Start the server
+Start the Rails server 
 ```bash
 # Start Rails Backend
 bin/setup            # installs gems, creates DB, runs migrations
 bin/rails db:seed    # demo data and accounts
 bin/rails s -d        # http://localhost:3000
+```
 
-# Start Frontend
-
- 
+Start Frontend
+```bash
 ## lib-frontend/.env.example
 VITE_API_URL=http://localhost:3000
 
@@ -36,6 +43,48 @@ npm run dev
 ```
 librarian: librarian@example.com / password123
 member:    member@example.com    / password123
+```
+
+## Testing
+
+```bash
+bundle exec rspec
+```
+
+Covers requests for auth, books CRUD, loans borrow/return, unhappy paths; policies; model rules.
+
+## How this evolved (AI/Codegen)
+
+I saved two initial files related to my starting point, one `docs/brainstorm.md` is my original sketch before using AI at all (its a sketch for myself testing my ideas, so very unstructured). Also `docs/first_plan.md` is one of the first plans created from my prompt (+ some iterations), which is very close to our final system.
+
+### Original idea (pre-AI)
+- Considered generic `Item` with STI (`Book < Item`) to support non-book assets.
+- Services for loan create/return. Person/Genre as separate models. One dashboard with role-gated actions.
+
+### V1 design (hand-written)
+- Concrete models: `User`, `Item/Book`, `Copy`, `Loan`.
+- Pundit for roles. Cookie session. React frontend with query-driven state.
+- DB constraints for barcodes and one active loan per copy.
+
+### AI-assisted deltas adopted
+- Extracted book creation into `Book::Create` service to keep controllers slim.
+- Fixed cookie key mismatches; removed unused frameworks (ActionCable, Active Job, Mailers) and limited railties.
+- Stabilized loan JSON to include both `title` and `loanable_title` for UI.
+- Writing Specs and Iterating quickly on ideas.
+
+
+## Local commands
+
+```bash
+# DB reset
+bin/rails db:drop db:create db:migrate db:seed
+
+# Lint (if RuboCop configured)
+bundle exec rubocop
+
+# Remove unused frameworks (already applied)
+bin/rails zeitwerk:check
+bin/rails routes
 ```
 
 ## Features
@@ -100,56 +149,18 @@ GET    /api/v1/genres/search?q=...
 
 - `lib-frontend/` Vite + React + TS.
 - Auth stored via cookie. `withCredentials: true`.
-- Screens: Login, Books (CRUD, borrow), BookForm, Loans (member and librarian tabs), Dashboard.
+- Screens: Login, Registration, Books (CRUD, borrow), BookForm, Loans (member and librarian tabs), Dashboard.
 - Env: `.env` set `VITE_API_URL`.
-
-## Testing
-
-```bash
-bundle exec rspec
-```
-
-Covers requests for auth, books CRUD, loans borrow/return, unhappy paths; policies; model rules.
-
-## How this evolved (AI/Codegen)
-
-### Original idea (pre-AI)
-- Considered generic `Item` with STI (`Book < Item`) to support non-book assets.
-- Services for loan create/return. Person/Genre as separate models. One dashboard with role-gated actions.
-
-### V1 design (hand-written)
-- Concrete models: `User`, `Item/Book`, `Copy`, `Loan`.
-- Pundit for roles. Cookie session. React frontend with query-driven state.
-- DB constraints for barcodes and one active loan per copy.
-
-### AI-assisted deltas adopted
-- Extracted book creation into `Book::Create` service to keep controllers slim.
-- Normalized 422 status symbol (`:unprocessable_entity`).
-- Fixed cookie key mismatches; removed unused frameworks (ActionCable, Active Job, Mailers) and limited railties.
-- Stabilized loan JSON to include both `title` and `loanable_title` for UI.
-
-### Current state
-- Cookie session with `Current.session` and `Current.user`.
-- Pundit policies enforced across controllers.
-- Loan invariants and 14-day default encapsulated in concerns/services.
-- React UI wired to REST endpoints with optimistic UX for borrow/return.
-
-## Local commands
-
-```bash
-# DB reset
-bin/rails db:drop db:create db:migrate db:seed
-
-# Lint (if RuboCop configured)
-bundle exec rubocop
-
-# Remove unused frameworks (already applied)
-bin/rails zeitwerk:check
-bin/rails routes
-```
 
 ## Notes
 
 - Session cookie: `cookies.encrypted[:session_token]`.
 - Search is SQL LIKE on title/author/genre with safe sanitization.
 - Overdue = `due_at < Time.current` on active loans.
+
+## Deferred due time (limited test to max of 6 hours)
+
+- Unit/model and frontend tests (focused on request specs)
+- Detailed API reference and extended docs (README only)
+- extra polish and edge UX states
+
