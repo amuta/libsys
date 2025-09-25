@@ -1,8 +1,8 @@
 require "rails_helper"
 RSpec.describe "Copies", type: :request do
-  let!(:lib){ create(:user, :librarian) }
-  let!(:mem){ create(:user) }
-  let!(:book){ create(:book) }
+  let!(:lib) { create(:user, :librarian) }
+  let!(:mem) { create(:user) }
+  let!(:book) { create(:book) }
 
   it "librarian adds a copy to a book" do
     sign_in(lib)
@@ -26,7 +26,7 @@ RSpec.describe "Copies", type: :request do
     copy2 = book.copies.create!(barcode: "C2", status: :available)
     # create active loan
     borrower = create(:user)
-    Loan::Create.call(user: borrower, loanable: book)
+    Loan::Create.call!(user: borrower, loanable: book)
     delete "/api/v1/copies/#{copy2.id}"
     expect(response).to have_http_status(:conflict)
     expect(json[:error]).to eq("active_loan")

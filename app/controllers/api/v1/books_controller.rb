@@ -15,14 +15,15 @@ class Api::V1::BooksController < Api::V1::BaseController
   end
 
   def create
-    authorize Book
-    Book.transaction do
-      @book = Book.create!(book_params)
-      @book.genre_ids = Array(params.dig(:book, :genre_ids)).map!(&:to_i).uniq
-      @book.author_ids = Array(params.dig(:book, :author_ids))
-    end
+    @book = Book.new(book_params); authorize @book
+    @book = Book::Create.call!(
+      attrs: book_params,
+      genre_ids: params.dig(:book, :genre_ids),
+      author_ids: params.dig(:book, :author_ids)
+    )
     render :show, status: :created
   end
+
 
   def update
     @book = Book.find(params[:id]); authorize @book
@@ -42,7 +43,7 @@ class Api::V1::BooksController < Api::V1::BaseController
 
   def borrow
     @book = Book.find(params[:id]); authorize @book, :show?
-    @loan = Loan::Create.call(user: Current.user, loanable: @book)
+    @loan = Loan::Create.call!(user: Current.user, loanable: @book)
     render "api/v1/loans/show", status: :created
   end
 

@@ -1,5 +1,5 @@
 class Loan::Create
-  def self.call(user:, loanable:)
+  def self.call!(user:, loanable:)
     Pundit.authorize(user, Loan, :create?)
     Copy.transaction do
       copy = loanable.copies.lock.available.first

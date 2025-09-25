@@ -1,5 +1,5 @@
 class Loan::Return
-  def self.call(librarian:, loan:)
+  def self.call!(librarian:, loan:)
     Pundit.authorize(librarian, loan, :return?)
     Copy.transaction do
       raise "already_returned" if loan.returned?

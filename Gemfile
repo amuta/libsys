@@ -48,6 +48,7 @@ group :development, :test do
   gem "rspec-rails"
   gem "factory_bot_rails"
   gem "pry"
+  gem "faker"
 end
 
 gem "pundit", "~> 2.5"
