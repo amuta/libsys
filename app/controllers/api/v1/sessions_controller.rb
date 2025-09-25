@@ -14,7 +14,6 @@ class Api::V1::SessionsController < Api::V1::BaseController
   def show
     authenticate!
     @user = Current.user
-    render :show
   end
 
   def destroy
