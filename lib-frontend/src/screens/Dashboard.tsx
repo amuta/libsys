@@ -6,13 +6,14 @@ import { useOutletContext } from "react-router-dom";
 const sod=(d:Date)=>{const x=new Date(d);x.setHours(0,0,0,0);return x;}
 export default function Dashboard(){
   const { me } = (useOutletContext() as any) || { me:null };
-const isLib = me?.role === "librarian";
-const { data:books=[] } = useQuery({ queryKey:["books",""], queryFn:()=>listBooks("") });
-const { data:loans=[] } = useQuery({
-  queryKey:["loans", isLib ? "library" : "mine"],
-  queryFn: () => fetchLoans(!isLib), // librarians see all, members see mine
-});
-
+  const isLib = me?.role === "librarian";
+  const { data:books=[] } = useQuery({ queryKey:["books",""], queryFn:()=>listBooks("") });
+  const { data:loans=[] } = useQuery({
+    queryKey:["loans", isLib ? "library" : "mine"],
+    queryFn: () => fetchLoans(!isLib), // librarians see all, members see mine
+  });
+  
+  const now=new Date(); const t0=sod(now).getTime(), t1=t0+86400000;
   const active=loans.filter((l:any)=>!l.returned_at);
   const dueToday=active.filter((l:any)=>{const t=new Date(l.due_at).getTime();return t>=t0&&t<t1;});
   const overdue=active.filter((l:any)=> new Date(l.due_at).getTime()<now.getTime());

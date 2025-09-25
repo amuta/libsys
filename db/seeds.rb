@@ -2,112 +2,91 @@
 
 require "faker"
 
+SEED = Integer(ENV.fetch("SEED", 42))
+rng  = Random.new(SEED)
 Faker::Config.locale = "en"
+Faker::Config.random = rng
 
 ActiveRecord::Base.transaction do
+  # Idempotent reset of domain data (keep users if you want; here we rebuild all)
+  Contribution.delete_all
+  Loan.delete_all
+  Copy.delete_all
+  BookGenre.delete_all
+  Genre.delete_all
+  Person.delete_all
+  Book.delete_all
+  User.delete_all
+
   puts "== Users"
-  lib = User.find_or_create_by!(email_address: "librarian@example.com") do |u|
-    u.name = "The Librarian"
-    u.password = "password"
-    u.role     = :librarian
-  end
-  members = 5.times.map do |i|
-    User.find_or_create_by!(email_address: "member#{i+1}@example.com") do |u|
-      u.name = "Member Num#{i+1}"
-      u.password = "password"
-      u.role     = :member
-    end
-  end
+  lib = User.create!(name: "The Librarian", email_address: "librarian@example.com", password: "password", role: :librarian)
+  members = 5.times.map { |i|
+    User.create!(name: "Member #{i + 1}", email_address: "member#{i + 1}@example.com", password: "password", role: :member)
+  }
   puts "   librarian: #{lib.email_address} / password"
-  puts "   members: #{members.map(&:email_address).join(", ")} / password"
+  puts "   members: #{members.map(&:email_address).join(', ')} / password"
 
   puts "== Genres"
   genre_names = %w[Software Architecture Databases DevOps Testing AI Security UX]
-  genres = genre_names.map { |name| Genre.find_or_create_by!(name:) }
+  genres = genre_names.map { |name| Genre.create!(name:) }
 
   puts "== People (authors)"
-  author_pool = []
-  20.times do
-    name = Faker::Book.unique.author
-    author_pool << Person.find_or_create_by!(name:)
-  end
+  author_pool = Array.new(20) { Person.create!(name: Faker::Book.author) }
 
   puts "== Books with authors + genres"
-  # Seed a few well-known CS titles first
   curated = [
-    [ "Refactoring",            "9780134757599" ],
-    [ "Clean Code",             "9780132350884" ],
-    [ "Domain-Driven Design",   "9780321125217" ],
-    [ "Design Patterns",        "9780201633610" ],
-    [ "Accelerate",             "9781942788331" ]
+    [ "Refactoring", "9780134757599" ],
+    [ "Clean Code", "9780132350884" ],
+    [ "Domain-Driven Design", "9780321125217" ],
+    [ "Design Patterns", "9780201633610" ],
+    [ "Accelerate", "9781942788331" ]
   ]
-  books = []
+  books = curated.map { |title, isbn| Book.create!(title:, isbn:, language: %w[en pt es].sample(random: rng)) }
 
-  curated.each do |title, isbn|
-    b = Book.find_or_create_by!(isbn:) do |book|
-      book.title    = title
-      book.language = %w[en en en en en pt es].sample
-    end
-    books << b
-  end
-
-  # Random additional books
+  # Add N random books deterministically
   25.times do
-    isbn = loop do
-      v = Faker::Number.number(digits: 13)
-      break v unless Book.exists?(isbn: v)
-    end
-    b = Book.find_or_create_by!(isbn:) do |book|
-      book.title    = Faker::Book.unique.title
-      book.language = %w[en pt es].sample
-    end
-    books << b
+    # deterministic 13-digit code from RNG
+    isbn = Array.new(13) { rng.rand(0..9) }.join
+    books << Book.create!(title: Faker::Book.title, isbn:, language: %w[en pt es].sample(random: rng))
   end
 
-  # Attach genres and authors
+  # Attach genres and authors deterministically
+  books.sort_by!(&:title)
   books.each do |book|
-    # genres (1–2)
-    book.genre_ids = genres.sample(rand(1..2)).map(&:id)
-
-    # authors (1–2)
-    selected_authors = author_pool.sample(rand(1..2))
-    selected_authors.each do |person|
-      Contribution.find_or_create_by!(catalogable: book, agent: person, role: :author)
+    book.genre_ids = genres.sample(rng.rand(1..2), random: rng).map!(&:id)
+    author_pool.sample(rng.rand(1..2), random: rng).each do |person|
+      Contribution.create!(catalogable: book, agent: person, role: :author)
     end
   end
 
   puts "== Copies (0–3 per book)"
-  books.each do |book|
-    next if book.copies.count >= 1 && book.copies.count <= 3 # keep idempotent-ish
-
-    # Clear existing and recreate a small random set for determinism on re-seed
-    book.copies.destroy_all
-    rand(0..3).times do |n|
-      Copy.create!(
-        loanable: book,
-        barcode: "B#{book.id}-#{n+1}",
-        status: :available
-      )
+  books.each_with_index do |book, i|
+    # 0..3 copies deterministically from index and RNG
+    count = rng.rand(0..3)
+    count.times do |n|
+      Copy.create!(loanable: book, barcode: "B#{book.id}-#{n + 1}", status: :available)
     end
   end
 
   puts "== Loans (some active, some overdue)"
-  # Borrow up to 12 available books across members
-  available_books = books.select { |b| b.copies.available.exists? }
-  available_books.sample([ available_books.size, 12 ].min).each_with_index do |book, i|
-    borrower = members.sample
-    loan = Loan::Create.call!(user: borrower, loanable: book) # sets due_at = 14 days out
+  # Deterministic selection: iterate books by title; for each with availability, loan to a member by round-robin.
+  idx = 0
+  books.each_with_index do |book, i|
+    next unless book.copies.available.exists?
+    borrower = members[idx % members.length]
+    idx += 1
 
-    # Mark about 1/3 as overdue by moving due_at into the past
-    if i % 3 == 0
+    # One loan per (borrower, book). No duplicates → no AlreadyBorrowed.
+    loan = Loan::Create.call!(user: borrower, loanable: book)
+
+    # Every 3rd → overdue, every 4th → returned (order matters; returning may clear overdue)
+    if (i % 3).zero?
       loan.update!(borrowed_at: 10.days.ago, due_at: 5.days.ago)
     end
-
-    # Mark about 1/4 as already returned
-    if i % 4 == 0
+    if (i % 4).zero?
       Loan::Return.call!(librarian: lib, loan: loan)
     end
   end
 end
 
-puts "== Done"
+puts "== Done (seed=#{SEED})"

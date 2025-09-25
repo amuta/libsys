@@ -21,9 +21,9 @@ docker compose up -d
 Start the Rails server 
 ```bash
 # Start Rails Backend
-bin/setup            # installs gems, creates DB, runs migrations
-bin/rails db:seed    # demo data and accounts
-bin/rails s -d        # http://localhost:3000
+bundle install                # install gems
+bin/rails db:setup db:seed    # demo data and accounts 
+bin/rails s -d                # http://localhost:3000
 ```
 
 Start Frontend
@@ -35,9 +35,9 @@ VITE_API_URL=http://localhost:3000
 cd lib-frontend
 cp .env.example .env
 npm install  
-npm run dev          
-# Access the front-end at:http://localhost:5173
+npm run dev # http://localhost:5173
 ```
+Then access the front-end at: http://localhost:5173
 
 ### Demo accounts (from seeds)
 ```

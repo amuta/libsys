@@ -5,9 +5,9 @@ module Book::Searchable
 
   included do
     scope :search, ->(q) {
-      next all if q.blank?
+      return all if q.blank?
 
-      qn      = ActiveRecord::Base.sanitize_sql_like(q.to_s.downcase)
+      qn      = ActiveRecord::Base.sanitize_sql_like(q.to_s)
       pattern = "%#{qn}%"
       author_role = Contribution.roles[:author]
 
@@ -15,16 +15,13 @@ module Book::Searchable
         LEFT JOIN contributions
           ON contributions.catalogable_type = 'Book'
          AND contributions.catalogable_id   = books.id
-         AND contributions.role             = #{author_role}
+         AND contributions.role             = #{author_role.to_i}
          AND contributions.agent_type       = 'Person'
-        LEFT JOIN people       ON people.id       = contributions.agent_id
-        LEFT JOIN book_genres  ON book_genres.book_id = books.id
-        LEFT JOIN genres       ON genres.id       = book_genres.genre_id
+        LEFT JOIN people      ON people.id  = contributions.agent_id
+        LEFT JOIN book_genres ON book_genres.book_id = books.id
+        LEFT JOIN genres      ON genres.id  = book_genres.genre_id
       SQL
-        .where(
-          "LOWER(books.title) LIKE :q OR LOWER(people.name) LIKE :q OR LOWER(genres.name) LIKE :q",
-          q: pattern
-        )
+        .where("books.title ILIKE :q OR people.name ILIKE :q OR genres.name ILIKE :q", q: pattern)
         .distinct
     }
   end
