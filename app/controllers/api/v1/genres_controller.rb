@@ -1,7 +1,7 @@
 class Api::V1::GenresController < Api::V1::BaseController
+  before_action :authenticate!
+
   def search
-    authenticate!
-    return unless Current.user
     @genres = Genre.search(params[:q])
     render :search
   end

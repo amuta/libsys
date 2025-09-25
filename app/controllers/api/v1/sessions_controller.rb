@@ -2,8 +2,8 @@ class Api::V1::SessionsController < Api::V1::BaseController
   def create
     user = User.find_by(email_address: params[:email_address])
     if user&.authenticate(params[:password])
-      @session = user.sessions.create!
-      cookies.encrypted[:session_token] = @session.id
+      @session = user.sessions.create!(user_agent: request.user_agent, ip_address: request.remote_ip)
+      cookies.encrypted[:session_token] = { value: @session.id, httponly: true, secure: Rails.env.production?, same_site: :strict }
       Current.session = @session
       render :create, status: :created
     else
@@ -12,8 +12,7 @@ class Api::V1::SessionsController < Api::V1::BaseController
   end
 
   def show
-    authenticate!
-    return unless Current.user
+    return head :unauthorized unless Current.user
     @user = Current.user
     render :show
   end
@@ -22,6 +21,7 @@ class Api::V1::SessionsController < Api::V1::BaseController
     if Current.session
       Current.session.destroy
       cookies.delete(:session_token)
+      Current.session = nil
     end
     head :no_content
   end

@@ -1,8 +1,8 @@
 require "rails_helper"
 RSpec.describe "Loans", type: :request do
-  let!(:lib){ create(:user, :librarian) }
-  let!(:mem){ create(:user) }
-  let!(:book){ create(:book) }
+  let!(:lib) { create(:user, :librarian) }
+  let!(:mem) { create(:user) }
+  let!(:book) { create(:book) }
 
   before { book.copies.create!(barcode: "BC1") }
 
@@ -18,7 +18,7 @@ RSpec.describe "Loans", type: :request do
     post "/api/v1/books/#{book.id}/borrow"
     expect(response).to have_http_status(:created)
     post "/api/v1/books/#{book.id}/borrow"
-    expect(response).to have_http_status(:unprocessable_entity)
+    expect(response).to have_http_status(:unprocessable_content)
     expect(json[:error]).to eq("not_available")
   end
 

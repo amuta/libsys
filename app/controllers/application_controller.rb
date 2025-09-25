@@ -13,7 +13,7 @@ class ApplicationController < ActionController::API
   end
 
   rescue_from Loan::Exceptions::NotAvailable do
-    render json: { error: "not_available" }, status: :unprocessable_entity
+    render json: { error: "not_available" }, status: :unprocessable_content
   end
 
   rescue_from Loan::Exceptions::AlreadyBorrowed do
@@ -22,11 +22,11 @@ class ApplicationController < ActionController::API
 
   rescue_from ActiveRecord::RecordInvalid do |exception|
     error_messages = exception.record.errors.full_messages
-    render json: { error: "validation_failed", messages: error_messages }, status: :unprocessable_entity
+    render json: { error: "validation_failed", messages: error_messages }, status: :unprocessable_content
   end
 
   def authenticate!
-    head :unauthorized and return unless Current.user
+    head :unauthorized unless Current.user
   end
 
   def current_user
@@ -36,6 +36,8 @@ class ApplicationController < ActionController::API
   private
 
   def set_current_session
-    Current.session = Session.find_by(id: cookies.encrypted[:session_token]) if cookies.encrypted[:session_token]
+    sid = cookies.encrypted[:session_token]
+    return unless sid
+    Current.session = Session.find_by(id: sid)
   end
 end
