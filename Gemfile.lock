@@ -102,6 +102,9 @@ GEM
       pp (>= 0.6.0)
       rdoc (>= 4.0.0)
       reline (>= 0.4.2)
+    jbuilder (2.14.1)
+      actionview (>= 7.0.0)
+      activesupport (>= 7.0.0)
     json (2.15.0)
     language_server-protocol (3.17.0.5)
     lint_roller (1.1.0)
@@ -292,6 +295,7 @@ DEPENDENCIES
   bootsnap
   brakeman
   debug
+  jbuilder (~> 2.14)
   pg (~> 1.1)
   puma (>= 5.0)
   pundit (~> 2.5)

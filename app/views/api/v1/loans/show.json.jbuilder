@@ -1,0 +1,1 @@
+json.partial! "api/v1/loans/loan", loan: @loan
