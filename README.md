@@ -11,25 +11,28 @@ Rails API + React frontend. Auth with cookies. Roles: Librarian and Member. Book
 ## Quickstart
 
 
-
+Start the server
 ```bash
-# Backend
+# Start Rails Backend
 bin/setup            # installs gems, creates DB, runs migrations
 bin/rails db:seed    # demo data and accounts
-bin/rails s          # http://localhost:3000
+bin/rails s -d        # http://localhost:3000
 
-# Frontend
-### lib-frontend/.env.example
+# Start Frontend
+
+ 
+## lib-frontend/.env.example
 VITE_API_URL=http://localhost:3000
 
+## Enter Front-end sub directory, copy .env file and run vite 
 cd lib-frontend
 cp .env.example .env
 npm install  
-npm run dev          # http://localhost:5173
+npm run dev          
+# Access the front-end at:http://localhost:5173
 ```
 
 ### Demo accounts (from seeds)
-
 ```
 librarian: librarian@example.com / password123
 member:    member@example.com    / password123
@@ -103,7 +106,7 @@ GET    /api/v1/genres/search?q=...
 ## Testing
 
 ```bash
-bin/rspec
+bundle exec rspec
 ```
 
 Covers requests for auth, books CRUD, loans borrow/return, unhappy paths; policies; model rules.
