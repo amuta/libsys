@@ -3,7 +3,7 @@ import { useMutation } from "@tanstack/react-query";
 import { register } from "../api/registration";
 import { Link, useNavigate } from "react-router-dom";
 
-export default function Register(){
+export default function Register() {
   const [name, setN] = useState("");
   const [email, setE] = useState("");
   const [pw, setP] = useState("");
@@ -11,15 +11,15 @@ export default function Register(){
   const [ok, setOk] = useState(false);
   const nav = useNavigate();
 
-  const valid = name.trim().length>0 && email.trim().length>0 && pw.length>=6 && pw===pw2;
+  const valid = name.trim().length > 0 && email.trim().length > 0 && pw.length >= 6 && pw === pw2;
 
   const m = useMutation({
     mutationFn: () => register({ name, email_address: email, password: pw, password_confirmation: pw2 }),
     onSuccess: () => {
       setOk(true);
-      setTimeout(()=> nav("/login?registered=1"), 900);
+      setTimeout(() => nav("/login?registered=1"), 900);
     },
-    onError: ()=> setOk(false),
+    onError: () => setOk(false),
   });
 
   const msgs = (m as any).error?.response?.data?.messages as string[] | undefined;
@@ -39,7 +39,7 @@ export default function Register(){
             className={`input input-bordered w-full ${name.trim() ? "" : "input-error"}`}
             placeholder="Full name"
             value={name}
-            onChange={e=>setN(e.target.value)}
+            onChange={e => setN(e.target.value)}
             required
           />
 
@@ -47,25 +47,25 @@ export default function Register(){
             className={`input input-bordered w-full ${email.trim() ? "" : "input-error"}`}
             placeholder="Email"
             value={email}
-            onChange={e=>setE(e.target.value)}
+            onChange={e => setE(e.target.value)}
             required
           />
 
           <input
-            className={`input input-bordered w-full ${(pw.length>=6 || pw.length===0) ? "" : "input-error"}`}
+            className={`input input-bordered w-full ${(pw.length >= 6 || pw.length === 0) ? "" : "input-error"}`}
             type="password"
             placeholder="Password (min 6)"
             value={pw}
-            onChange={e=>setP(e.target.value)}
+            onChange={e => setP(e.target.value)}
             required
           />
 
           <input
-            className={`input input-bordered w-full ${pw2 && pw2!==pw ? "input-error" : ""}`}
+            className={`input input-bordered w-full ${pw2 && pw2 !== pw ? "input-error" : ""}`}
             type="password"
             placeholder="Confirm password"
             value={pw2}
-            onChange={e=>setP2(e.target.value)}
+            onChange={e => setP2(e.target.value)}
             required
           />
 
@@ -77,13 +77,13 @@ export default function Register(){
 
           {msgs?.length ? (
             <div className="alert alert-error text-sm">
-              <ul className="list-disc ml-5">{msgs.map((t,i)=><li key={i}>{t}</li>)}</ul>
+              <ul className="list-disc ml-5">{msgs.map((t, i) => <li key={i}>{t}</li>)}</ul>
             </div>
           ) : null}
 
           <button
-            className={`btn btn-primary w-full ${m.isPending?"loading":""}`}
-            onClick={()=>m.mutate()}
+            className={`btn btn-primary w-full ${m.isPending ? "loading" : ""}`}
+            onClick={() => m.mutate()}
             disabled={!valid || m.isPending}
           >
             Register

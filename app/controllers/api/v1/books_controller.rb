@@ -15,7 +15,7 @@ class Api::V1::BooksController < Api::V1::BaseController
   end
 
   def create
-    @book = Book.new(book_params); authorize @book
+    authorize Book
     @book = Book::Create.call!(
       attrs: book_params,
       genre_ids: params.dig(:book, :genre_ids),

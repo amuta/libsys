@@ -25,6 +25,10 @@ class ApplicationController < ActionController::API
     render json: { error: "validation_failed", messages: error_messages }, status: :unprocessable_content
   end
 
+  rescue_from Loan::Exceptions::AlreadyReturned do
+    render json: { error: "already_returned" }, status: :conflict
+  end
+
   def authenticate!
     head :unauthorized unless Current.user
   end

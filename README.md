@@ -41,8 +41,8 @@ Then access the front-end at: http://localhost:5173
 
 ### Demo accounts (from seeds)
 ```
-librarian: librarian@example.com / password123
-member:    member@example.com    / password123
+librarian: librarian@example.com / password
+member:    member@example.com    / password
 ```
 
 ## Testing

@@ -73,4 +73,12 @@ RSpec.describe "Loans", type: :request do
     get "/api/v1/loans"
     expect(json.first[:overdue]).to eq(true)
   end
+
+  it "409 on already returned" do
+    sign_in(mem); post "/api/v1/books/#{book.id}/borrow"; id = json[:id]
+    sign_in(lib); patch "/api/v1/loans/#{id}/return"
+    patch "/api/v1/loans/#{id}/return"
+    expect(response).to have_http_status(:conflict)
+    expect(json[:error]).to eq("already_returned")
+  end
 end
