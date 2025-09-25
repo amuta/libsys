@@ -47,8 +47,8 @@ group :development, :test do
 
   gem "rspec-rails"
   gem "factory_bot_rails"
+  gem "pry"
 end
 
 gem "pundit", "~> 2.5"
-
 gem "jbuilder", "~> 2.14"

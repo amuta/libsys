@@ -58,4 +58,19 @@ RSpec.describe "Loans", type: :request do
     patch "/api/v1/loans/#{loan_id}/return"
     expect(response).to have_http_status(:no_content)
   end
+
+  it "sets due_at to 14 days from borrow" do
+    sign_in(mem)
+    post "/api/v1/books/#{book.id}/borrow"
+    expect(Time.zone.parse(json[:due_at])).to be_between(13.days.from_now, 15.days.from_now)
+  end
+
+  it "marks loans overdue when past due_at" do
+    sign_in(mem)
+    post "/api/v1/books/#{book.id}/borrow"
+    loan_id = json[:id]
+    Loan.find(loan_id).update!(borrowed_at: 2.days.ago, due_at: 1.day.ago)
+    get "/api/v1/loans"
+    expect(json.first[:overdue]).to eq(true)
+  end
 end

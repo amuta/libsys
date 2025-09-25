@@ -2,9 +2,10 @@ class Api::V1::BooksController < Api::V1::BaseController
   before_action :authenticate!
 
   def index
-    @books = policy_scope(Book).includes(:genres)
-            .where("LOWER(title) LIKE ?", "%#{params[:q].to_s.downcase}%")
-            .order(created_at: :desc)
+    @books = policy_scope(Book)
+              .search(params[:q])
+              .includes(:genres, contributions: :agent)
+              .order(created_at: :desc)
     render :index
   end
 

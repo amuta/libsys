@@ -1,7 +1,8 @@
 Rails.application.routes.draw do
   namespace :api do
     namespace :v1 do
-      resource  :session, only: %i[create show destroy], controller: :sessions
+      resource :session, only: %i[create show destroy], controller: :sessions
+      resource :registration, only: :create, controller: :registrations
       resources :books do
         post :borrow, on: :member
         post :copies, on: :member

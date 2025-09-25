@@ -1,6 +1,7 @@
 class Book < ApplicationRecord
   include Loanable
   include Catalogable
+  include Book::Searchable
 
   has_many :book_genres, dependent: :destroy
   has_many :genres, through: :book_genres

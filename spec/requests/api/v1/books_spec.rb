@@ -17,6 +17,20 @@ RSpec.describe "Books", type: :request do
     expect(json.first[:title]).to eq("Refactoring")
   end
 
+  it "filters books by author name via q" do
+    create(:contribution, catalogable: book, agent: a1, role: :author)
+    sign_in(mem)
+    get "/api/v1/books", params: { q: "fowler" }
+    expect(json.map { _1[:id] }).to include(book.id)
+  end
+
+  it "filters books by genre name via q" do
+    create(:book_genre, book:, genre: g2)
+    sign_in(mem)
+    get "/api/v1/books", params: { q: "architec" }
+    expect(json.map { _1[:id] }).to include(book.id)
+  end
+
   it "shows a book with authors and genres" do
     create(:contribution, catalogable: book, agent: a1, role: :author)
     sign_in(mem)
