@@ -8,6 +8,11 @@ RSpec.describe "Api::V1::Registration", type: :request do
       expect(json.dig(:user, :role)).to eq("member")
     end
 
+    it "normalizes email" do
+      post "/api/v1/registration", params: { user: { name: "A", email_address: "CASE@X.TLD", password: "secretpass", password_confirmation: "secretpass" } }
+      expect(User.last.email_address).to eq("case@x.tld")
+    end
+
     context "unhappy paths" do
       it "rejects missing name" do
         expect {
